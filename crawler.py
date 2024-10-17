@@ -43,9 +43,9 @@ def fill_package(name: str):
         if key in headers:  
             package[key] = value
         elif key == "Name":
-            if "lib" in key: 
+            if "lib" in value: 
                 package['isLibrary'] = True
-            package["Name"] = value
+            package[key] = value
         elif key == "Depends On":
             dependencies = value.split('  ')
             for dep in dependencies:
@@ -58,3 +58,30 @@ def fill_package(name: str):
             package['conflictors'].append(value)
 
     return package
+
+seen = []
+packages = [] 
+def crawl(name: str): 
+
+    if name in seen: 
+        return 
+
+    seen.append(name)
+    package = fill_package(name)
+    packages.append(package)
+
+    # for debuging
+    # print(package)
+    # input("============")
+
+    for dependency in package['dependencies']: 
+        if dependency == "None": 
+            return 
+        crawl(dependency)
+
+
+crawl("htop")
+for package in packages: 
+    print(package)
+    print("=============")
+    input()
