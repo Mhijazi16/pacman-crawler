@@ -7,5 +7,16 @@ class Package(TypedDict):
     URL: str
     Description: str
     Size: str
-    conflictors: list[str]
-    dependencies: list[str] 
+    conflictors: List[str]
+    dependencies: List[str] 
+
+def get_package():
+    return {
+            'Name': '',
+            'Packager': '',
+            'URL': '',
+            'Description': '',
+            'Size': '',
+            'conflictors': [],
+            'dependencies': []
+        }
