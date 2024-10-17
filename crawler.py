@@ -9,32 +9,43 @@ class Package(TypedDict):
     Size: str
     conflictors: List[str]
     dependencies: List[str] 
+    isLibrary: bool
 
 def get_package():
     return {
-            'Name': '',
-            'Packager': '',
             'URL': '',
+            'Name': '',
+            'Version':'',
+            'Packager': '',
             'Description': '',
-            'Size': '',
+            'Architecture': '',
+            'Installed Size': '',
             'conflictors': [],
-            'dependencies': []
+            'dependencies': [],
+            'isLibrary': False,
         }
 
 def fill_package(name: str):
 
     package = get_package()
-    headers = ["Name","Size","Packager","Description","URL"]
+    headers = ["Installed Size","Version","Packager","Description","Architecture","URL"]
     data = os.popen(f"pacman -Qi {name}").read()
     lines = data.strip().split('\n')
 
     for line in lines: 
+        if ":" not in line: 
+            continue
+
         key, value = line.split(":",1)
         key = key.strip()
         value = value.strip()
 
         if key in headers:  
             package[key] = value
+        elif key == "Name":
+            if "lib" in key: 
+                package['isLibrary'] = True
+            package["Name"] = value
         elif key == "Depends On":
             dependencies = value.split('  ')
             for dep in dependencies:
@@ -47,5 +58,3 @@ def fill_package(name: str):
             package['conflictors'].append(value)
 
     return package
-
-print(fill_package("glibc"))
