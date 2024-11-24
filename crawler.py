@@ -1,10 +1,8 @@
 import os
-from neo4j import GraphDatabase
-from models import get_package 
+from models import get_package_template, store_package, apply_name_constraint
 
 def fill_package(name: str):
-
-    package = get_package()
+    package = get_package_template()
     headers = ["Installed Size","Version","Packager","Description","Architecture","URL"]
     data = os.popen(f"pacman -Qi {name}").read()
     lines = data.strip().split('\n')
@@ -20,7 +18,7 @@ def fill_package(name: str):
         if key in headers:  
             package[key] = value
         elif key == "Name":
-            if "lib" in value: 
+            if "lib" in value or value.startswith("lib"): 
                 package['isLibrary'] = True
             package[key] = value
         elif key == "Depends On":
@@ -50,7 +48,13 @@ def crawl(name: str):
     # input("============")
     for dependency in package['dependencies']: 
         if dependency == "None": 
+            store_package(package)
             return 
         crawl(dependency)
+    store_package(package)
+    print(package["Name"], package['dependencies'])
 
-crawl("htop")
+# only execute this once
+# apply_name_constraint()
+
+crawl("neofetch")

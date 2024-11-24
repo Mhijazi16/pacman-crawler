@@ -1,3 +1,6 @@
+from neo4j import GraphDatabase 
+import os
+
 def get_package_template():
     return {
             'URL': '',
@@ -11,3 +14,7 @@ def get_package_template():
             'dependencies': [],
             'isLibrary': False,
         }
+
+PASS = os.environ["NEO4J_PASS"]
+URI = "bolt://localhost:7687"
+AUTH = ("neo4j", PASS)
