@@ -32,3 +32,11 @@ def create_depend_on_relation(tx, name, dep):
                     MERGE (p)-[d:DEPENDS_ON]->(p2)
                     """, 
                     name=name, dep_name=dep)
+
+def create_conflicts_with_relation(tx, name, conflict):
+    result = tx.run("""
+                    MERGE (p:Package {name: $name})
+                    MERGE (p2:Package {name: $conflictor})
+                    MERGE (p)-[d:CONFLICTS_WITH]-(p2)
+                    """, 
+                    name=name, conflictor=conflict)
