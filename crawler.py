@@ -1,29 +1,6 @@
 import os
-from typing import TypedDict, List
-
-class Package(TypedDict): 
-    Name: str 
-    Packager: str
-    URL: str
-    Description: str
-    Size: str
-    conflictors: List[str]
-    dependencies: List[str] 
-    isLibrary: bool
-
-def get_package():
-    return {
-            'URL': '',
-            'Name': '',
-            'Version':'',
-            'Packager': '',
-            'Description': '',
-            'Architecture': '',
-            'Installed Size': '',
-            'conflictors': [],
-            'dependencies': [],
-            'isLibrary': False,
-        }
+from neo4j import GraphDatabase
+from models import get_package 
 
 def fill_package(name: str):
 
@@ -60,7 +37,6 @@ def fill_package(name: str):
     return package
 
 seen = []
-packages = [] 
 def crawl(name: str): 
 
     if name in seen: 
@@ -68,20 +44,13 @@ def crawl(name: str):
 
     seen.append(name)
     package = fill_package(name)
-    packages.append(package)
 
     # for debuging
     # print(package)
     # input("============")
-
     for dependency in package['dependencies']: 
         if dependency == "None": 
             return 
         crawl(dependency)
 
-
 crawl("htop")
-for package in packages: 
-    print(package)
-    print("=============")
-    input()
