@@ -13,3 +13,8 @@ def create_package(tx, package):
              arch=package["Architecture"],
              size=package["Installed Size"],
              description=package["Description"])
+
+def label_as_library(tx, package):
+    result = tx.run("""MERGE (p:Package{name: $name})
+                       SET p:Library""", 
+                    name=package["Name"])
