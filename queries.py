@@ -18,3 +18,8 @@ def label_as_library(tx, package):
     result = tx.run("""MERGE (p:Package{name: $name})
                        SET p:Library""", 
                     name=package["Name"])
+
+def label_as_leaf(tx, package):
+    result = tx.run("""MERGE (p:Package{name: $name})
+                       SET p:Leaf""", 
+                    name=package["Name"])
