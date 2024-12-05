@@ -3,7 +3,8 @@ def create_package(tx, package):
     result = tx.run("""
             MERGE (p:Package{
                 name: $name, url: $url, version: $version, owner: $owner, 
-                description: $description, arch: $arch, size: $size})
+                description: $description, arch: $arch, size: $size,
+                manualIndex: $manual})
             RETURN p.name AS name """, 
 
              name=package["Name"], 
@@ -12,7 +13,8 @@ def create_package(tx, package):
              owner=package["Packager"],
              arch=package["Architecture"],
              size=package["Installed Size"],
-             description=package["Description"])
+             description=package["Description"],
+             manual=package["Manual"])
 
 def label_as_library(tx, package):
     result = tx.run("""MERGE (p:Package{name: $name})
@@ -40,3 +42,18 @@ def create_conflicts_with_relation(tx, name, conflict):
                     MERGE (p)-[d:CONFLICTS_WITH]-(p2)
                     """, 
                     name=name, conflictor=conflict)
+
+def project_graph(tx, package_name): 
+    # drop previous in memory graph for package
+    tx.run("CALL gds.graph.drop($name, false)", name=package_name)
+
+    # project the graph to memory
+    tx.run("""
+                MATCH (:Package{name: $name})-[rels:DEPENDS_ON*]->(leaf)
+                WHERE NOT (leaf)-[:DEPENDS_ON]->()
+                UNWIND rels AS r
+                WITH DISTINCT r
+                RETURN gds.graph.project($name, STARTNODE(r), ENDNODE(r))
+                    """, 
+                name=package_name)
+
