@@ -5,11 +5,11 @@ from queries import create_depend_on_relation
 from queries import label_as_leaf
 from queries import label_as_library
 from queries import project_graph
+from queries import get_package
 import os
 
 def get_package_template():
-    return {
-            'URL': '', 'Name': '', 'Version':'',
+    return { 'URL': '', 'Name': '', 'Version':'',
             'Packager': '',
             'Description': '',
             'Architecture': '',
@@ -22,6 +22,8 @@ def get_package_template():
 PASS = os.environ["NEO4J_PASS"]
 URI = "bolt://localhost:7687"
 AUTH = ("neo4j", PASS)
+driver = GraphDatabase.driver(URI, auth=AUTH)
+driver.verify_connectivity()
 
 def apply_name_constraint():
     try: 
@@ -42,9 +44,6 @@ def store_package(package):
     stored.append(package["Name"])
     
     try: 
-        driver = GraphDatabase.driver(URI, auth=AUTH)
-        driver.verify_connectivity()
-
         with driver.session(database="neo4j") as session: 
             session.execute_write(create_package, package)
 
@@ -67,24 +66,29 @@ def store_package(package):
         print(f"something went wrong!! : {e}")
 
 def get_topological_sort(name):
+    order = []
     try: 
-        driver = GraphDatabase.driver(URI, auth=AUTH)
-        driver.verify_connectivity()
-
         with driver.session(database="neo4j") as session: 
             session.execute_write(project_graph, name)
 
         result = driver.execute_query("""
             CALL gds.dag.topologicalSort.stream($name, {computeMaxDistanceFromSource: true})
             YIELD nodeId, maxDistanceFromSource
-            RETURN gds.util.asNode(nodeId).name AS name, maxDistanceFromSource AS hops
-            ORDER BY hops DESC , name 
+            WITH gds.util.asNode(nodeId) as node,
+                   maxDistanceFromSource AS hops
+            RETURN
+                hops,
+                node.name,
+                node.url, 
+                node.size,
+                node.arch,
+                node.description, 
+                node.owner
+            ORDER BY hops DESC
         """, name=name)
 
-        for record in result.records:
-            print(record['name'])
-        input()
+        order = result.records
     except Exception as e : 
         print(f"something went wrong!! : {e}")
 
-get_topological_sort('fastfetch')
+    return order
