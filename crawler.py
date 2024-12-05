@@ -1,5 +1,14 @@
 import os
+from langchain_ollama.embeddings import OllamaEmbeddings
 from models import get_package_template, store_package, apply_name_constraint
+
+embeddings_allowed = False
+
+if embeddings_allowed: 
+    llm = OllamaEmbeddings(model="nomic-embed-text")
+
+    def embed_data(data):
+        return llm.embed_query(data)
 
 def fill_package(name: str):
     package = get_package_template()
@@ -32,6 +41,14 @@ def fill_package(name: str):
         elif key == "Conflicts With": 
             package['conflictors'].append(value)
 
+        if embeddings_allowed: 
+            man = os.popen(f"man {name}").read() 
+            if "No manual entry" in man: 
+                man = package["Description"]
+                package["Manual"] = embed_data(man)
+            else: 
+                package["Manual"] = embed_data(package["Description"] + man)
+
     return package
 
 seen = []
@@ -43,9 +60,6 @@ def crawl(name: str):
     seen.append(name)
     package = fill_package(name)
 
-    # for debuging
-    # print(package)
-    # input("============")
     for dependency in package['dependencies']: 
         if dependency == "None": 
             store_package(package)
@@ -57,4 +71,4 @@ def crawl(name: str):
 # only execute this once
 # apply_name_constraint()
 
-crawl("neofetch")
+crawl("htop")
