@@ -57,3 +57,6 @@ def project_graph(tx, package_name):
                     """, 
                 name=package_name)
 
+def get_package(tx, name): 
+    result = tx.run("MATCH (node:Package{name:$name}) RETURN node", name=name)
+    return result.single()['node']._properties
