@@ -3,7 +3,7 @@ import subprocess
 from langchain_ollama.embeddings import OllamaEmbeddings
 from models import get_package_template, store_package, apply_name_constraint
 
-embeddings_allowed = True
+embeddings_allowed = False
 
 if embeddings_allowed: 
     llm = OllamaEmbeddings(model="nomic-embed-text")
@@ -65,7 +65,12 @@ def add_embeddings(package):
 
 seen = []
 def crawl(name: str): 
-
+    """
+        crawl is a tool used to crawl a software package 
+        and store it in neo4j 
+        Args:
+            name: str 
+    """
     if name in seen: 
         return 
 
@@ -86,4 +91,3 @@ def crawl(name: str):
 # only execute this once
 # apply_name_constraint()
 
-crawl("neofetch")
