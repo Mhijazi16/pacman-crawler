@@ -1,8 +1,9 @@
 import os
+import subprocess
 from langchain_ollama.embeddings import OllamaEmbeddings
 from models import get_package_template, store_package, apply_name_constraint
 
-embeddings_allowed = False
+embeddings_allowed = True
 
 if embeddings_allowed: 
     llm = OllamaEmbeddings(model="nomic-embed-text")
@@ -41,14 +42,23 @@ def fill_package(name: str):
         elif key == "Conflicts With": 
             package['conflictors'].append(value)
 
-        if embeddings_allowed: 
-            man = os.popen(f"man {name}").read() 
-            if "No manual entry" in man: 
-                man = package["Description"]
-                package["Manual"] = embed_data(man)
-            else: 
-                package["Manual"] = embed_data(package["Description"] + man)
+    return package
 
+def add_embeddings(package):
+    if embeddings_allowed: 
+        # man = os.popen(f"man {package['Name']}").read() 
+        result = subprocess.run(
+            ["man", package["Name"]],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        man_page = result.stdout
+        if "No manual entry" in man_page: 
+            man = package["Description"]
+            package["Manual"] = embed_data(man_page)
+        elif package["Description"] != "" or package["Description"]: 
+            package["Manual"] = embed_data(package["Description"] + man_page)
     return package
 
 seen = []
@@ -62,13 +72,16 @@ def crawl(name: str):
 
     for dependency in package['dependencies']: 
         if dependency == "None": 
+            package = add_embeddings(package)
             store_package(package)
             return 
         crawl(dependency)
+
+    package = add_embeddings(package)
     store_package(package)
     print(package["Name"], package['dependencies'])
 
 # only execute this once
 # apply_name_constraint()
 
-crawl("htop")
+crawl("neofetch")
