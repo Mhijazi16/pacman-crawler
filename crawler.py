@@ -56,9 +56,11 @@ def add_embeddings(package):
         man_page = result.stdout
         if "No manual entry" in man_page: 
             man = package["Description"]
-            package["Manual"] = embed_data(man_page)
+            package["ManualIndex"] = embed_data(man)
+            package["Manual"] = man
         elif package["Description"] != "" or package["Description"]: 
-            package["Manual"] = embed_data(package["Description"] + man_page)
+            package["Manual"] = package["Description"] + man_page
+            package["ManualIndex"] = embed_data(package["Manual"])
     return package
 
 seen = []

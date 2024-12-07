@@ -4,7 +4,7 @@ def create_package(tx, package):
             MERGE (p:Package{
                 name: $name, url: $url, version: $version, owner: $owner, 
                 description: $description, arch: $arch, size: $size,
-                manualIndex: $manual})
+                manualIndex: $manual, manPage: $man})
             RETURN p.name AS name """, 
 
              name=package["Name"], 
@@ -14,7 +14,8 @@ def create_package(tx, package):
              arch=package["Architecture"],
              size=package["Installed Size"],
              description=package["Description"],
-             manual=package["Manual"])
+             manual=package["ManualIndex"],
+             man=package["Manual"])
 
 def label_as_library(tx, package):
     result = tx.run("""MERGE (p:Package{name: $name})
