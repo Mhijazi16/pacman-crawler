@@ -3,8 +3,7 @@ def create_package(tx, package):
     result = tx.run("""
             MERGE (p:Package{
                 name: $name, url: $url, version: $version, owner: $owner, 
-                description: $description, arch: $arch, size: $size,
-                manualIndex: $manual, manPage: $man})
+                description: $description, arch: $arch, size: $size})
             RETURN p.name AS name """, 
 
              name=package["Name"], 
@@ -14,8 +13,9 @@ def create_package(tx, package):
              arch=package["Architecture"],
              size=package["Installed Size"],
              description=package["Description"],
-             manual=package["ManualIndex"],
-             man=package["Manual"])
+             # manual=package["ManualIndex"],
+             # man=package["Manual"]
+                    )
 
 def label_as_library(tx, package):
     result = tx.run("""MERGE (p:Package{name: $name})
@@ -57,6 +57,20 @@ def project_graph(tx, package_name):
                 RETURN gds.graph.project($name, STARTNODE(r), ENDNODE(r))
                     """, 
                 name=package_name)
+
+def get_dependency_by_degree(tx, package_name, degree): 
+    result = tx.run(f"""
+        MATCH (node:Package)-[:DEPENDS_ON*..{degree}]->(other) 
+        WHERE node.name = $name
+        RETURN other.name as name
+                 
+    """, name=package_name)
+
+    records = []
+    for record in result: 
+        records.append(record['name'])
+        # print(record)
+    return records
 
 def get_package(tx, name): 
     result = tx.run("""
