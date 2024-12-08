@@ -1,0 +1,3 @@
+langchain_ollama==0.2.1
+langgraph==0.2.56
+neo4j==5.25.0

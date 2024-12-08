@@ -86,8 +86,8 @@ def crawl(name: str):
 
     # package = add_embeddings(package)
     store_package(package)
-    print(package["Name"], package['dependencies'])
+    # print(package["Name"], package['conflictors'])
+    # return "finished"
 
 # only execute this once
 # apply_name_constraint()
-# crawl("visual-studio-code-bin")

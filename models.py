@@ -1,5 +1,5 @@
 from neo4j import GraphDatabase 
-from queries import create_package, get_dependencies, get_dependency_by_degree, get_package, topological_sort 
+from queries import create_package, empty_database, get_conflicts, get_dependencies, get_dependency_by_degree, get_package, topological_sort 
 from queries import create_conflicts_with_relation
 from queries import create_depend_on_relation
 from queries import label_as_leaf
@@ -56,12 +56,12 @@ def store_package(package):
                     continue
                 session.execute_write(create_depend_on_relation, package["Name"], dep)
 
-        for conflict in package["conflictors"]: 
-            if conflict == "None": 
-                break;
-            session.execute_write(create_conflicts_with_relation,
-                                  package["Name"],
-                                  conflict)
+            for conflict in package["conflictors"]: 
+                if conflict == "None": 
+                    break;
+                session.execute_write(create_conflicts_with_relation,
+                                      package["Name"],
+                                      conflict)
     except Exception as e : 
         print(f"warning : {e}")
 
@@ -95,6 +95,28 @@ def get_dependency_by_distance(name, step):
         result = s.execute_read(get_dependency_by_degree,name,step)
         return result
 
+def get_conflicting_packages(name: str): 
+    """
+    this tool is used to get packages that 
+    conflict with the package you want 
+    Args: 
+        name: str
+    """
+    with driver.session() as s: 
+        result = s.execute_read(get_conflicts,name)
+        return result
+
+def free_database(): 
+    """
+    this tool is used to empty or delete 
+    every node and relationship that is in 
+    the database
+    """
+    with driver.session() as s: 
+        result = s.execute_write(empty_database)
+        return result
+
+
 def get_all_dependencies(name): 
     """
     this tool takes returns all the dependencies
@@ -117,6 +139,6 @@ def get_package_info(name: str):
     """
     with driver.session() as s: 
         result = s.execute_read(get_package,name)
-        print(result)
+        # print(result)
         return result
 
