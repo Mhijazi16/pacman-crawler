@@ -79,15 +79,15 @@ def crawl(name: str):
 
     for dependency in package['dependencies']: 
         if dependency == "None": 
-            package = add_embeddings(package)
+            # package = add_embeddings(package)
             store_package(package)
             return 
         crawl(dependency)
 
-    package = add_embeddings(package)
+    # package = add_embeddings(package)
     store_package(package)
     print(package["Name"], package['dependencies'])
 
 # only execute this once
 # apply_name_constraint()
-
+# crawl("visual-studio-code-bin")
