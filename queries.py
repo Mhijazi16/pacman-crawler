@@ -58,6 +58,23 @@ def project_graph(tx, package_name):
                     """, 
                 name=package_name)
 
+def topological_sort(tx, name):
+    result = tx.run("""
+                CALL gds.dag.topologicalSort.stream($name, {computeMaxDistanceFromSource: true})
+                YIELD nodeId, maxDistanceFromSource
+                WITH gds.util.asNode(nodeId) as node,
+                       maxDistanceFromSource AS hops
+                RETURN node.name as name
+                ORDER BY hops DESC
+                    """, 
+                name=name)
+
+    order = f"this is the order that you should install depdendencies for {name}"
+    for i, record in enumerate(result): 
+        order += f"\n{i})" + record['name']
+    print(order)
+    return order
+
 def get_dependency_by_degree(tx, package_name, degree): 
     result = tx.run(f"""
         MATCH (node:Package)-[:DEPENDS_ON*..{degree}]->(other) 
@@ -70,6 +87,16 @@ def get_dependency_by_degree(tx, package_name, degree):
     for record in result: 
         records.append(record['name'])
         # print(record)
+    return records
+
+def get_dependencies(tx, name):
+    result = tx.run("""
+        MATCH (n:Package{name: $name})-[:DEPENDS_ON*]->(b)
+        RETURN DISTINCT b.name AS name
+    """, name=name)
+    records = []
+    for record in result: 
+        records.append(record['name'])
     return records
 
 def get_package(tx, name): 
